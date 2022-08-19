@@ -1,5 +1,7 @@
 package main
 
-func main() {
+import "github.com/ArtemVoronov/artforintrovert-test/internal/app"
 
+func main() {
+	app.Start()
 }
