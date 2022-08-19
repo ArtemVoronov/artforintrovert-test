@@ -1,4 +1,4 @@
-package mongo
+package db
 
 import (
 	"context"
@@ -18,9 +18,10 @@ import (
 type MongoService interface {
 	ShutDown()
 
-	GetCollection(db string, collection string) *mongo.Collection
-
-	Insert(collection *mongo.Collection)
+	GetCollection(dbName string, collectionName string) *mongo.Collection
+	Insert(dbName string, collectionName string, document interface{}) (*primitive.ObjectID, error)
+	Upsert(dbName string, collectionName string, id primitive.ObjectID, document interface{}) (*primitive.ObjectID, error)
+	Delete(dbName string, collectionName string, id primitive.ObjectID) error
 }
 
 type Service struct {
@@ -41,8 +42,19 @@ func Instance() *Service {
 	return instance
 }
 
-func (s *Service) GetCollection(db string, collection string) *mongo.Collection {
-	return s.client.Database(db).Collection(collection)
+func (s *Service) ShutDown() {
+	ctx, cancel := context.WithTimeout(context.Background(), s.connectTimeout)
+	defer cancel()
+	defer func() {
+		err := s.client.Disconnect(ctx)
+		if err != nil {
+			log.Printf("mongo client unable to disconnect: %v", err)
+		}
+	}()
+}
+
+func (s *Service) GetCollection(dbName string, collectionName string) *mongo.Collection {
+	return s.client.Database(dbName).Collection(collectionName)
 }
 
 func (s *Service) Insert(dbName string, collectionName string, document interface{}) (*primitive.ObjectID, error) {
@@ -106,42 +118,13 @@ func (s *Service) Delete(dbName string, collectionName string, id primitive.Obje
 	return err
 }
 
-// TODO: add pagination
-func (s *Service) GetAll(dbName string, collectionName string) ([]bson.D, error) {
-	collection := s.GetCollection(dbName, collectionName)
-
-	ctx, cancel := context.WithTimeout(context.Background(), s.queryTimeout)
-	defer cancel()
-
-	cursor, err := collection.Find(ctx, bson.D{})
-	if err != nil {
-		panic(err)
-	}
-
-	var results []bson.D
-	if err = cursor.All(ctx, &results); err != nil {
-		return results, fmt.Errorf("unable to get all documents. Error: %v", err)
-	}
-	for _, result := range results {
-		fmt.Println(result)
-	}
-	return results, nil
-}
-
-func (s *Service) ShutDown() {
-	ctx, cancel := context.WithTimeout(context.Background(), s.connectTimeout)
-	defer cancel()
-	defer func() {
-		err := s.client.Disconnect(ctx)
-		if err != nil {
-			log.Printf("mongo client unable to disconnect: %v", err)
-		}
-	}()
+func (s *Service) GetQueryTimeout() time.Duration {
+	return s.queryTimeout
 }
 
 func createService() *Service {
-	connectTimeout := connectTimeout()
-	queryTimeout := queryTimeout()
+	connectTimeout := ConnectTimeout()
+	queryTimeout := QueryTimeout()
 	client, err := createClient(connectTimeout)
 	if err != nil {
 		log.Fatalf("unable to setup mongo service: %v", err)
@@ -159,7 +142,7 @@ func createClient(connectTimeout time.Duration) (*mongo.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), connectTimeout)
 	defer cancel()
 
-	result, err := mongo.Connect(ctx, options.Client().ApplyURI(connectionURL()))
+	result, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoConnectionURL()))
 	if err != nil {
 		return result, fmt.Errorf("unable to create mongo client: %v", err)
 	}
@@ -167,22 +150,12 @@ func createClient(connectTimeout time.Duration) (*mongo.Client, error) {
 	return result, nil
 }
 
-func connectionURL() string {
+func mongoConnectionURL() string {
 	username := utils.EnvVarDefault("DATABASE_USERNAME", "mongo_admin")
 	password := utils.EnvVarDefault("DATABASE_PASSWORD", "mongo_admin_password")
 	host := utils.EnvVarDefault("DATABASE_HOST", "localhost")
 	port := utils.EnvVarDefault("DATABASE_PORT", "27017")
 	return "mongodb://" + username + ":" + password + "@" + host + ":" + port
-}
-
-func connectTimeout() time.Duration {
-	value := utils.EnvVarIntDefault("DATABASE_CONNECT_TIMEOUT_IN_SECONDS", "30")
-	return time.Duration(value) * time.Second
-}
-
-func queryTimeout() time.Duration {
-	value := utils.EnvVarIntDefault("DATABASE_QUERY_TIMEOUT_IN_SECONDS", "30")
-	return time.Duration(value) * time.Second
 }
 
 // TODO: add processing of case when we have replica set of mongos and need to use sessions + tx
