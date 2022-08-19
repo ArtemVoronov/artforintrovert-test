@@ -2,7 +2,7 @@
 `docker-compose build && docker-compose up`
 
 # Configuration
-In case of different environment add appropriate `.env`. Default settings (if there is no `.env` config) is the following:
+Add appropriate `.env` file in case of different environment. Default settings (if there is no `.env` config) is the following:
 ```
 # common settings
 APP_PORT=3000
@@ -48,7 +48,8 @@ Response
 ## Example 2 (create)
 Request 
 
-```PUT http://localhost:3000/api/v1/records/
+```
+PUT http://localhost:3000/api/v1/records/
 {
     "data": "exponent"
 }
