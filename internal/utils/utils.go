@@ -3,6 +3,7 @@ package utils
 import (
 	"log"
 	"os"
+	"strconv"
 )
 
 func EnvVar(varName string) string {
@@ -19,4 +20,13 @@ func EnvVarDefault(varName string, defaultValue string) string {
 		return defaultValue
 	}
 	return val
+}
+
+func EnvVarIntDefault(varName string, defaultValue string) int {
+	val := EnvVarDefault(varName, defaultValue)
+	result, err := strconv.Atoi(val)
+	if err != nil {
+		log.Printf("Unable to parse enviroment variable: %s. Using default value", varName)
+	}
+	return result
 }

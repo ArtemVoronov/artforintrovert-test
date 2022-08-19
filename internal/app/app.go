@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/ArtemVoronov/artforintrovert-test/internal/api/rest/v1/records"
+	"github.com/ArtemVoronov/artforintrovert-test/internal/services/mongo"
 	"github.com/ArtemVoronov/artforintrovert-test/internal/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -18,7 +19,7 @@ import (
 
 func Start() {
 	setup()
-
+	defer Shutdown()
 	srv := &http.Server{
 		Addr:    host(),
 		Handler: router(),
@@ -56,9 +57,12 @@ func Start() {
 
 func setup() {
 	loadEnv()
-	// TODO: setup db service
+	mongo.Instance()
 	// TODO: setup cache service
 	// TODO: setup update cache goroutine
+}
+func Shutdown() {
+	mongo.Instance().ShutDown()
 }
 
 func loadEnv() {
@@ -86,10 +90,8 @@ func router() *gin.Engine {
 
 	v1 := router.Group("/api/v1")
 	v1.GET("/records/", records.GetRecords)
-	v1.GET("/records/:id", records.GetRecord)
-	v1.POST("/records/", records.CreateRecord)
-	v1.PUT("/records/:id", records.UpdateRecord)
-	v1.DELETE("/records/:id", records.DeleteRecord)
+	v1.PUT("/records/", records.UpdateRecord)
+	v1.DELETE("/records/", records.DeleteRecord)
 
 	return router
 }
