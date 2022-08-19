@@ -1,0 +1,26 @@
+version: "3.9"
+services:
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+        - ./configs/mongodb/mongodb-init.js:/docker-entrypoint-initdb.d/mongodb-init.js:ro
+        - database-volume:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongo_admin
+      - MONGO_INITDB_ROOT_PASSWORD=mongo_admin_password
+      - MONGO_INITDB_DATABASE=testdb
+  
+  api:
+    build: .
+    profiles: ["prod"] # TODO: remove at the end
+    ports:
+      - "3000:3000"
+
+volumes:
+  database-volume:
+
+networks:
+  default:
+    name: artforintrovert-test-network  
