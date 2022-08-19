@@ -153,7 +153,7 @@ func createClient(connectTimeout time.Duration) (*mongo.Client, error) {
 func mongoConnectionURL() string {
 	username := utils.EnvVarDefault("DATABASE_USERNAME", "mongo_admin")
 	password := utils.EnvVarDefault("DATABASE_PASSWORD", "mongo_admin_password")
-	host := utils.EnvVarDefault("DATABASE_HOST", "localhost")
+	host := utils.EnvVarDefault("DATABASE_HOST", "mongo")
 	port := utils.EnvVarDefault("DATABASE_PORT", "27017")
 	return "mongodb://" + username + ":" + password + "@" + host + ":" + port
 }

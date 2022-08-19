@@ -2,7 +2,7 @@
 `docker-compose build && docker-compose up`
 
 # Configuration
-In case different environment add appropriate `.env`. If there is no `.env` in root dir will be used default settings:
+In case of different environment add appropriate `.env`. Default settings (if there is no `.env` config) is the following:
 ```
 # common settings
 APP_PORT=3000
@@ -28,6 +28,7 @@ UPDATE_CACHE_INTERVAL_FACTOR=2 # increasing twice in case of error
 
 ## Example 1 (get all)
 Request
+
 ```GET http://localhost:3000/api/v1/records/```
 
 Response
@@ -46,9 +47,8 @@ Response
 
 ## Example 2 (create)
 Request 
-```PUT http://localhost:3000/api/v1/records/```
-Body
-```
+
+```PUT http://localhost:3000/api/v1/records/
 {
     "data": "exponent"
 }
@@ -61,9 +61,9 @@ Response
 
 ## Example 3 (update)
 Request
-```PUT http://localhost:3000/api/v1/records/```
-Body
+
 ```
+PUT http://localhost:3000/api/v1/records/
 {
     "id": "62ffcac90074ec24bbb5810e",
     "data": "planck"
@@ -78,9 +78,9 @@ Response
 
 ## Example 4 (delete)
 Request
-```PUT http://localhost:3000/api/v1/records/```
-Body
+
 ```
+DELETE http://localhost:3000/api/v1/records/
 {
     "id": "62ffcac90074ec24bbb5810e"
 }
