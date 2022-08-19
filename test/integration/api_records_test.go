@@ -9,11 +9,23 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ArtemVoronov/artforintrovert-test/internal/api"
 	"github.com/stretchr/testify/assert"
 )
 
-const GOROUTINES_LIMIT = 10000
-const DELAY_BETWEEN_OP = 5
+const (
+	GOROUTINES_LIMIT = 10000
+	DELAY_BETWEEN_OP = 5
+)
+
+var (
+	ERROR_RECORD_ID_IS_REQUIRED string = "{\"errors\":[" +
+		"{\"Field\":\"Id\",\"Msg\":\"This field is required\"}" +
+		"]}"
+	ERROR_RECORD_DATA_IS_REQUIRED string = "{\"errors\":[" +
+		"{\"Field\":\"Data\",\"Msg\":\"This field is required\"}" +
+		"]}"
+)
 
 func TestApiRecordGetAll(t *testing.T) {
 	t.Run("BasicCase", RunWithRecreateDB(func(t *testing.T) {
@@ -68,6 +80,20 @@ func TestApiRecordUpdate(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusOK, httpStatusCode)
 		assert.Equal(t, "\"Done\"", body)
+	}))
+	t.Run("MissedData", RunWithRecreateDB(func(t *testing.T) {
+		httpStatusCode, body, err := testHttpClient.UpsertRecord("62ffcac20074ec24bbb5810d", nil)
+
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusBadRequest, httpStatusCode)
+		assert.Equal(t, ERROR_RECORD_DATA_IS_REQUIRED, body)
+	}))
+	t.Run("WrongTypeForData", RunWithRecreateDB(func(t *testing.T) {
+		httpStatusCode, body, err := testHttpClient.UpsertRecord(nil, 123)
+
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusBadRequest, httpStatusCode)
+		assert.Equal(t, "\""+api.ERROR_MESSAGE_PARSING_BODY_JSON+"\"", body)
 	}))
 	t.Run("Bulk", RunWithRecreateDB(func(t *testing.T) {
 		var m sync.Mutex
@@ -138,6 +164,20 @@ func TestApiRecordDelete(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusOK, httpStatusCode)
 		assert.Equal(t, "[]", body)
+	}))
+	t.Run("MissedId", RunWithRecreateDB(func(t *testing.T) {
+		httpStatusCode, body, err := testHttpClient.DeleteRecord(nil)
+
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusBadRequest, httpStatusCode)
+		assert.Equal(t, ERROR_RECORD_ID_IS_REQUIRED, body)
+	}))
+	t.Run("WrongTypeForId", RunWithRecreateDB(func(t *testing.T) {
+		httpStatusCode, body, err := testHttpClient.DeleteRecord(123)
+
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusBadRequest, httpStatusCode)
+		assert.Equal(t, "\""+api.ERROR_MESSAGE_PARSING_BODY_JSON+"\"", body)
 	}))
 	t.Run("Bulk", RunWithRecreateDB(func(t *testing.T) {
 		var m sync.Mutex

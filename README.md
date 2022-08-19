@@ -27,9 +27,9 @@ UPDATE_CACHE_INTERVAL_FACTOR=2 # increasing twice in case of error
 # API endpoints
 
 ## Entities
-Any request with body could have a json object with only two attrs:
-- ```id``` (optional fo update)
-- ```data``` (optional for delete)
+Any request with body must have a json object with only two attrs:
+- ```id``` (optional for update, required for delete)
+- ```data``` (optional for delete, required for update)
 
 Example
 ```
