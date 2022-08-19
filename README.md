@@ -26,6 +26,19 @@ UPDATE_CACHE_INTERVAL_FACTOR=2 # increasing twice in case of error
 
 # API endpoints
 
+## Entities
+Any request with body could have a json object with only two attrs:
+- ```id``` (optional fo update)
+- ```data``` (optional for delete)
+
+Example
+```
+{
+    "id": "62ffcac20074ec24bbb5810d",
+    "data": "exponent"
+}
+```
+
 ## Example 1 (get all)
 Request
 
