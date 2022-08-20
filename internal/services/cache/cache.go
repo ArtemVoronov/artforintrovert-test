@@ -13,7 +13,6 @@ import (
 type CacheService interface {
 	ShutDown()
 	RecordsCacheToJSON(c *gin.Context)
-	RecordsCacheLength() int
 }
 
 type Service struct {
